@@ -2,6 +2,7 @@ import json
 import pyodbc
 import os
 from datetime import datetime
+from model.Cancion import Cancion
 
 
 # ============================================================
@@ -21,7 +22,7 @@ class GestorCancion:
             # Obtiene la ruta absoluta del directorio actual
             directorio = os.path.dirname(os.path.abspath(__file__))
             # Construye la ruta completa hacia el archivo config.json
-            ruta = os.path.join(directorio, 'config.json')
+            ruta = os.path.join(directorio, '..', 'config.json')
             # Abre y lee el archivo de configuración
             with open(ruta, 'r', encoding='utf-8') as archivo_config:
                 config = json.load(archivo_config)
@@ -195,13 +196,24 @@ class GestorCancion:
         pista = self.validar_pista_opcional(
             "Número de pista (Enter para omitir): "
         )
+
+        cancion = Cancion(nombre, duracion, fecha, estado, calidad, album_id, pista)
+
         # Ejecuta el procedimiento almacenado
         cursor = None
         try:
             cursor = self.conn.cursor()
             cursor.execute(
                 "{CALL Catalogo.sp_CrearCancion (?, ?, ?, ?, ?, ?, ?)}",
-                (nombre, duracion, fecha, estado, calidad, album_id, pista)
+                (
+                    cancion.nombre,
+                    cancion.duracion,
+                    cancion.fecha,
+                    cancion.estado,
+                    cancion.calidad,
+                    cancion.album_id,
+                    cancion.pista
+                )
             )
             resultado = cursor.fetchone()
             self.conn.commit()
@@ -324,13 +336,24 @@ class GestorCancion:
         pista = self.validar_pista_opcional(
             "Nuevo número de pista (Enter para omitir): "
         )
+
+        cancion = Cancion(nombre, duracion, fecha, estado, calidad, None, pista)
+
         # Ejecuta el procedimiento almacenado de actualización
         cursor = None
         try:
             cursor = self.conn.cursor()
             cursor.execute(
                 "{CALL Catalogo.sp_ActualizarCancion (?, ?, ?, ?, ?, ?, ?)}",
-                (id_cancion, nombre, duracion, fecha, estado, calidad, pista)
+                (
+                    id_cancion,
+                    cancion.nombre,
+                    cancion.duracion,
+                    cancion.fecha,
+                    cancion.estado,
+                    cancion.calidad,
+                    cancion.pista
+                )
             )
             resultado = cursor.fetchone()
             self.conn.commit()
@@ -390,6 +413,37 @@ class GestorCancion:
         finally:
             if cursor:
                 cursor.close()
+    
+    # ============================================================
+    #               MENÚ PRINCIPAL
+    # ============================================================
+    def ejecutar_menu(self):
+        while True:
+            print("\n" + "=" * 50)
+            print("        SISTEMA CRUD - CATÁLOGO CANCIONES   ")
+            print("=" * 50)
+            print("\t1. Insertar canción")
+            print("\t2. Consultar canciones")
+            print("\t3. Actualizar canción")
+            print("\t4. Eliminar canción")
+            print("\t5. Salir")
+            print("=" * 50)
+
+            opcion = input("Seleccione una opción (1-5): ").strip()
+
+            if opcion == "1":
+                self.crear_cancion()
+            elif opcion == "2":
+                self.consultar_cancion()
+            elif opcion == "3":
+                self.actualizar_cancion()
+            elif opcion == "4":
+                self.eliminar_cancion()
+            elif opcion == "5":
+                print("\nSaliendo del sistema...")
+                break
+            else:
+                print("\n[!] Opción no válida. Intente nuevamente.")
 
     # ============================================================
     #               CERRAR CONEXIÓN

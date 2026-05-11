@@ -1,7 +1,7 @@
 {
-    "nameServer": "(local)",
+    "nameServer": ".\\SQLEXPRESS",
     "database": "Ecualizer",
     "username": "login_CrudCancion",
     "password": "Crud@Cancion2026!",
-    "controladorODBC": "{ODBC Driver 17 for SQL Server}"
+    "controladorODBC": "ODBC Driver 17 for SQL Server"
 }
